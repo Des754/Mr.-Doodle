@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PNG Doodle Studio — Mista Grasruts AI Creator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN TOKENS ══════════════════════════════════════ */
+:root {
+  --ink: #14100A;
+  --paper: #FDF8EF;
+  --aged: #F0E8D4;
+  --cream: #FFFCF5;
+  --border: #C8B48A;
+  --muted: #8A7258;
+  --shadow: rgba(20,16,10,0.18);
+
+  --green: #1E5C3A;
+  --green2: #2D8B58;
+  --green-pale: #D4EDE0;
+  --gold: #C9960A;
+  --gold2: #F0B429;
+  --gold-pale: #FFF3CC;
+  --red: #B02A1A;
+  --red2: #E03C2A;
+  --red-pale: #FDECEA;
+  --blue: #1A3F6E;
+  --blue2: #2563EB;
+  --blue-pale: #DBEAFE;
+  --purple: #5B21B6;
+  --purple-pale: #EDE9FE;
+
+  --r: 10px; --rlg: 16px;
+  --font-head: 'Bebas Neue', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-comic: 'Special Elite', cursive;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--aged);
+  color: var(--ink);
+  min-height: 100vh;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(160,130,80,.06) 23px, rgba(160,130,80,.06) 24px),
+    repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(160,130,80,.03) 35px, rgba(160,130,80,.03) 36px);
+}
+
+/* ══ TOP BAR ════════════════════════════════════════════ */
+#topbar {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--ink);
+  border-bottom: 3px solid var(--gold);
+  box-shadow: 0 4px 20px var(--shadow);
+}
+.tb-inner {
+  max-width: 1280px; margin: 0 auto;
+  padding: 0 1.25rem;
+  display: flex; align-items: center; gap: 12px;
+  height: 58px;
+}
+.tb-logo {
+  font-family: var(--font-head);
+  font-size: 20px; letter-spacing: .12em;
+  color: var(--gold2);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.tb-logo-badge {
+  width: 36px; height: 36px;
+  background: var(--gold); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--ink); font-family: var(--font-head); letter-spacing: .04em;
+}
+.tb-logo small { font-family: var(--font-body); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,248,220,.5); display: block; margin-top: -2px; }
+.tb-nav { display: flex; gap: 2px; flex: 1; justify-content: center; overflow-x: auto; }
+.tb-nav button {
+  font-family: var(--font-body); font-size: 11px; font-weight: 800;
+  letter-spacing: .05em; text-transform: uppercase;
+  padding: 6px 13px; border: none; background: transparent;
+  color: rgba(255,248,220,.55); cursor: pointer; border-radius: 6px;
+  white-space: nowrap; transition: all .15s;
+  border-bottom: 2px solid transparent;
+}
+.tb-nav button:hover { color: var(--paper); background: rgba(255,255,255,.07); }
+.tb-nav button.on { color: var(--gold2); border-bottom-color: var(--gold2); background: rgba(201,150,10,.12); }
+.tb-actions { display: flex; gap: 7px; flex-shrink: 0; }
+.tb-btn {
+  font-family: var(--font-body); font-size: 11px; font-weight: 800;
+  padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all .15s;
+  border: 1.5px solid;
+}
+.tb-btn-gold { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.tb-btn-gold:hover { background: #a87c08; }
+.tb-btn-outline { background: transparent; color: var(--paper); border-color: rgba(255,255,255,.25); }
+.tb-btn-outline:hover { border-color: var(--paper); }
+
+/* ══ API KEY SETUP MODAL ════════════════════════════════ */
+#api-modal {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(20,16,10,.85);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.api-box {
+  background: var(--cream);
+  border: 3px solid var(--gold);
+  border-radius: var(--rlg);
+  padding: 2rem;
+  max-width: 540px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.api-title { font-family: var(--font-head); font-size: 26px; letter-spacing: .08em; color: var(--ink); margin-bottom: 6px; }
+.api-sub { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+.api-field { margin-bottom: 1rem; }
+.api-label {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.api-dot { width: 8px; height: 8px; border-radius: 50%; }
+.api-input {
+  width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px;
+  background: var(--paper); color: var(--ink);
+  letter-spacing: .05em;
+  transition: border-color .15s; outline: none;
+}
+.api-input:focus { border-color: var(--green); }
+.api-note { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+.api-note a { color: var(--blue2); text-decoration: none; }
+.api-note a:hover { text-decoration: underline; }
+.api-save {
+  width: 100%; margin-top: 1.25rem;
+  font-family: var(--font-head); font-size: 22px; letter-spacing: .1em;
+  padding: 12px; background: var(--green); color: white;
+  border: none; border-radius: var(--r); cursor: pointer;
+  box-shadow: 0 4px 0 #0d3320; transition: all .15s;
+}
+.api-save:hover { background: #164a2e; transform: translateY(-1px); }
+.api-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #0d3320; }
+.api-skip { width: 100%; margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--muted); background: none; border: none; cursor: pointer; padding: 6px; }
+.api-skip:hover { color: var(--ink); }
+.api-status { display: flex; gap: 8px; margin-top: 1rem; }
+.api-badge {
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  padding: 4px 10px; border-radius: 20px;
+}
+.badge-ok { background: var(--green-pale); color: var(--green); }
+.badge-no { background: var(--red-pale); color: var(--red); }
+
+/* ══ LAYOUT ═════════════════════════════════════════════ */
+.app {
+  max-width: 1280px; margin: 0 auto; padding: 1.25rem;
+  display: grid; grid-template-columns: 290px 1fr; gap: 1.25rem;
+  align-items: start;
+}
+.page { display: none; }
+.page.on { display: contents; }
+
+/* ══ CARDS ══════════════════════════════════════════════ */
+.card {
+  background: var(--cream); border: 1.5px solid var(--border);
+  border-radius: var(--rlg); overflow: hidden;
+  box-shadow: 3px 3px 0 rgba(20,16,10,.07);
+}
+.card-head {
+  background: var(--ink); color: var(--paper);
+  font-family: var(--font-head); font-size: 13px; letter-spacing: .1em;
+  padding: 8px 14px; display: flex; align-items: center; gap: 8px;
+}
+.card-head .pill {
+  background: var(--gold); color: var(--ink);
+  font-family: var(--font-body); font-size: 9px; font-weight: 900;
+  padding: 2px 8px; border-radius: 20px; letter-spacing: .04em;
+}
+.card-body { padding: 14px; }
+.sidebar { display: flex; flex-direction: column; gap: 1rem; }
+.main-col { display: flex; flex-direction: column; gap: 1rem; }
+
+/* ══ FORM ELEMENTS ══════════════════════════════════════ */
+.fl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; display: block; }
+input[type=text], select, textarea {
+  width: 100%; font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 7px;
+  background: var(--paper); color: var(--ink); outline: none; transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--green2); }
+textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
+.field { margin-bottom: 11px; }
+.field:last-child { margin-bottom: 0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+  border: 1.5px solid var(--border); cursor: pointer;
+  background: var(--paper); color: var(--muted); transition: all .12s; user-select: none;
+}
+.chip:hover { border-color: var(--green2); color: var(--green); }
+.chip.on { background: var(--green); color: white; border-color: var(--green); }
+
+.big-btn {
+  width: 100%; font-family: var(--font-head); font-size: 19px; letter-spacing: .1em;
+  padding: 12px; border: none; border-radius: var(--r); cursor: pointer; transition: all .15s;
+  box-shadow: 0 4px 0; margin-top: 4px;
+}
+.big-btn-green { background: var(--green); color: white; box-shadow-color: #0d3320; }
+.big-btn-green:hover { background: #164a2e; transform: translateY(-1px); }
+.big-btn-green:active { transform: translateY(2px); }
+.big-btn-gold { background: var(--gold); color: var(--ink); }
+.big-btn-gold:hover { background: #a87c08; transform: translateY(-1px); }
+.big-btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+
+/* ══ STATUS / PROGRESS ══════════════════════════════════ */
+.loading {
+  background: var(--cream); border: 1.5px solid var(--border);
+  border-radius: var(--rlg); padding: 2.5rem; text-align: center;
+}
+.spin {
+  width: 44px; height: 44px; border: 3px solid var(--green-pale);
+  border-top-color: var(--green); border-radius: 50%;
+  animation: spin .8s linear infinite; margin: 0 auto 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.load-msg { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+.load-sub { font-size: 12px; font-weight: 600; color: var(--muted); }
+.pbar { background: var(--aged); border-radius: 4px; height: 8px; margin-top: 14px; overflow: hidden; }
+.pfill { height: 100%; background: var(--green); border-radius: 4px; transition: width .5s; }
+.step-list { list-style: none; margin-top: 1rem; text-align: left; display: flex; flex-direction: column; gap: 6px; }
+.step-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.step-item.done { color: var(--green); }
+.step-item.active { color: var(--ink); }
+.step-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--border); }
+.step-item.done .step-dot { background: var(--green2); }
+.step-item.active .step-dot { background: var(--gold2); animation: pulse .8s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+
+/* ══ SCENE CARDS ════════════════════════════════════════ */
+.scenes-wrap { display: flex; flex-direction: column; gap: 10px; }
+.sc {
+  background: var(--cream); border: 1.5px solid var(--border);
+  border-radius: var(--rlg); overflow: hidden;
+  box-shadow: 2px 2px 0 rgba(20,16,10,.06);
+}
+.sc-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; cursor: pointer; user-select: none;
+}
+.sc-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  font-family: var(--font-head); font-size: 16px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sc-title { flex: 1; font-size: 14px; font-weight: 800; color: var(--ink); }
+.sc-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.stag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+.t-loc { background: var(--green-pale); color: #0d3320; }
+.t-cult { background: var(--gold-pale); color: #6b4a00; }
+.t-dur { background: var(--aged); color: var(--muted); border: 1px solid var(--border); }
+.chev { width: 18px; height: 18px; flex-shrink: 0; opacity: .4; transition: transform .2s; }
+.sc.open .chev { transform: rotate(180deg); }
+.sc-body { display: none; border-top: 1.5px solid var(--border); padding: 16px; }
+.sc.open .sc-body { display: block; }
+.sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sc-full { grid-column: 1 / -1; }
+.slabel { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+.sdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sval { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.6; }
+
+/* Voice blocks */
+.vblock { border-radius: 8px; padding: 10px 12px; }
+.vblock-m { background: var(--blue-pale); border: 1px solid rgba(37,99,235,.2); }
+.vblock-f { background: var(--red-pale); border: 1px solid rgba(176,42,26,.2); }
+.vmeta { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+.vmeta-m { color: var(--blue); } .vmeta-f { color: var(--red); }
+.vtext { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.6; }
+.vactions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+.vaudio { width: 100%; margin-top: 8px; }
+.vaudio audio { width: 100%; height: 32px; border-radius: 6px; }
+
+/* Drawing / Tok Pisin boxes */
+.tok-box {
+  background: var(--ink); color: var(--paper);
+  border-radius: 8px; padding: 10px 12px;
+  font-family: var(--font-comic); font-size: 13px; line-height: 1.6;
+}
+.draw-box {
+  background: var(--gold-pale); border: 1.5px dashed var(--gold);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  line-height: 1.6; font-family: var(--font-comic);
+}
+.learn-box { background: var(--blue-pale); border: 1px solid rgba(37,99,235,.2); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-weight: 700; color: var(--blue); }
+.discuss-box { background: var(--green-pale); border: 1px solid rgba(30,92,58,.2); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; color: var(--green); font-style: italic; }
+.ref-box { background: var(--gold-pale); border: 1px solid rgba(201,150,10,.3); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; color: #5a3c00; }
+
+/* ══ IMAGE GENERATION ═══════════════════════════════════ */
+.img-wrap {
+  position: relative; border-radius: 10px; overflow: hidden;
+  border: 2px solid var(--border); background: var(--aged);
+  min-height: 200px; display: flex; align-items: center; justify-content: center;
+}
+.img-wrap img { width: 100%; height: auto; display: block; }
+.img-placeholder { text-align: center; padding: 1.5rem; color: var(--muted); }
+.img-placeholder span { display: block; font-size: 32px; margin-bottom: 8px; }
+.img-placeholder p { font-size: 12px; font-weight: 600; }
+.img-overlay {
+  position: absolute; inset: 0; background: rgba(20,16,10,.65);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px;
+}
+.img-overlay .spin { width: 32px; height: 32px; border-width: 2px; }
+.img-overlay p { font-size: 12px; font-weight: 700; color: white; }
+
+/* ══ SMALL BUTTONS ══════════════════════════════════════ */
+.sm-btn {
+  font-size: 11px; font-weight: 700; padding: 5px 11px;
+  border-radius: 20px; border: 1.5px solid; cursor: pointer; transition: all .12s;
+  background: white; white-space: nowrap;
+}
+.sm-btn-green { color: var(--green); border-color: var(--green); }
+.sm-btn-green:hover { background: var(--green); color: white; }
+.sm-btn-blue { color: var(--blue); border-color: var(--blue); }
+.sm-btn-blue:hover { background: var(--blue); color: white; }
+.sm-btn-red { color: var(--red); border-color: var(--red); }
+.sm-btn-red:hover { background: var(--red); color: white; }
+.sm-btn-gold { color: var(--gold); border-color: var(--gold); }
+.sm-btn-gold:hover { background: var(--gold); color: var(--ink); }
+.sm-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ══ STATS ROW ══════════════════════════════════════════ */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1rem; }
+.stat { background: var(--cream); border: 1.5px solid var(--border); border-radius: var(--r); padding: 12px; text-align: center; }
+.stat-v { font-family: var(--font-head); font-size: 26px; letter-spacing: .05em; color: var(--green); }
+.stat-l { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 2px; }
+
+/* ══ EXPORT BAR ═════════════════════════════════════════ */
+.export-bar { background: var(--ink); border-radius: var(--rlg); padding: 1.25rem; border: 2px solid var(--gold); margin-top: .5rem; }
+.export-title { font-family: var(--font-head); font-size: 18px; letter-spacing: .08em; color: var(--gold2); margin-bottom: 10px; }
+.export-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.ebtn {
+  font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  padding: 9px 10px; border-radius: 7px; cursor: pointer; transition: all .12s;
+  border: 1.5px solid rgba(255,255,255,.2); background: rgba(255,255,255,.07); color: var(--paper);
+  text-align: center;
+}
+.ebtn:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.4); }
+.ebtn-gold { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+.ebtn-gold:hover { background: #a87c08; }
+
+/* ══ VOICE GRID ═════════════════════════════════════════ */
+.vgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vc {
+  border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px;
+  cursor: pointer; transition: all .12s; background: var(--paper);
+}
+.vc:hover { border-color: var(--green2); }
+.vc.on { border-color: var(--green); background: var(--green-pale); border-width: 2px; }
+.vc-icon { font-size: 22px; margin-bottom: 4px; }
+.vc-name { font-size: 13px; font-weight: 800; color: var(--ink); }
+.vc-desc { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+
+/* ══ CHARACTER GRID ═════════════════════════════════════ */
+.cgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.cc {
+  border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px;
+  cursor: pointer; transition: all .12s; background: var(--paper); text-align: center;
+}
+.cc:hover { border-color: var(--green2); transform: translateY(-1px); }
+.cc.on { border-color: var(--green); background: var(--green-pale); border-width: 2px; }
+.cc-face { font-size: 24px; margin-bottom: 4px; }
+.cc-name { font-size: 11px; font-weight: 800; color: var(--ink); }
+.cc-role { font-size: 10px; font-weight: 600; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+
+/* ══ NOTICE BOXES ════════════════════════════════════════ */
+.notice { padding: 10px 12px; border-radius: var(--r); font-size: 12px; font-weight: 600; line-height: 1.5; margin-bottom: 10px; }
+.notice:last-child { margin-bottom: 0; }
+.n-gold { background: var(--gold-pale); border: 1.5px solid var(--gold); color: #5a3c00; }
+.n-green { background: var(--green-pale); border: 1.5px solid var(--green); color: #0d3320; }
+.n-red { background: var(--red-pale); border: 1.5px solid var(--red); color: #7b1a10; }
+.n-blue { background: var(--blue-pale); border: 1.5px solid var(--blue); color: #112240; }
+
+/* ══ WELCOME BANNER ══════════════════════════════════════ */
+.banner {
+  background: var(--ink); border-radius: var(--rlg);
+  padding: 1.75rem; color: var(--paper);
+  border: 2px solid var(--gold);
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,.012) 12px, rgba(255,255,255,.012) 24px);
+}
+.banner-title { font-family: var(--font-head); font-size: 30px; letter-spacing: .06em; color: var(--gold2); }
+.banner-sub { font-size: 13px; font-weight: 600; color: rgba(255,248,220,.72); margin-top: 6px; line-height: 1.65; max-width: 560px; }
+.banner-pills { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.bp { font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; border: 1.5px solid; }
+.bp-g { background: rgba(45,139,88,.15); color: #52b788; border-color: #52b788; }
+.bp-y { background: rgba(201,150,10,.15); color: var(--gold2); border-color: var(--gold2); }
+.bp-r { background: rgba(224,60,42,.15); color: #f87171; border-color: #f87171; }
+
+/* ══ MODE CARDS ══════════════════════════════════════════ */
+.mode-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.mc {
+  background: var(--cream); border: 2px solid var(--border);
+  border-radius: var(--rlg); padding: 1rem; cursor: pointer;
+  transition: all .15s; text-align: center;
+}
+.mc:hover { border-color: var(--green2); transform: translateY(-2px); }
+.mc.on { border-color: var(--green); background: var(--green-pale); box-shadow: 0 0 0 3px rgba(30,92,58,.15); }
+.mc-icon { font-size: 28px; margin-bottom: 7px; }
+.mc-name { font-family: var(--font-head); font-size: 16px; letter-spacing: .06em; color: var(--ink); }
+.mc-desc { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* ══ EMPTY STATE ════════════════════════════════════════ */
+.empty { padding: 3rem; text-align: center; color: var(--muted); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: .3; }
+.empty-title { font-family: var(--font-head); font-size: 20px; letter-spacing: .06em; margin-bottom: 6px; }
+.empty-sub { font-size: 13px; font-weight: 600; max-width: 300px; margin: 0 auto; line-height: 1.6; }
+
+/* ══ COMIC STRIP ════════════════════════════════════════ */
+.comic-frame {
+  background: white; border: 3px solid var(--ink); border-radius: 4px;
+  overflow: hidden; box-shadow: 5px 5px 0 var(--ink);
+}
+.comic-panels { display: grid; }
+.comic-panel {
+  border-right: 2px solid var(--ink); padding: 10px;
+  min-height: 160px; position: relative; background: var(--paper);
+}
+.comic-panel:last-child { border-right: none; }
+.bubble {
+  background: white; border: 2px solid var(--ink); border-radius: 12px;
+  padding: 6px 8px; font-family: var(--font-comic); font-size: 10px;
+  line-height: 1.4; position: relative; margin-bottom: 8px;
+}
+.bubble::after {
+  content: ''; position: absolute; bottom: -8px; left: 14px;
+  border: 7px solid transparent; border-top: 8px solid var(--ink);
+}
+.pdesc { font-size: 9px; font-weight: 600; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+.pnum { position: absolute; top: 5px; right: 7px; font-family: var(--font-head); font-size: 11px; color: var(--border); }
+.comic-caption { padding: 8px 12px; background: var(--ink); font-family: var(--font-comic); font-size: 11px; color: var(--paper); }
+
+/* ══ RESPONSIVE ══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .mode-grid { grid-template-columns: 1fr 1fr; }
+  .sc-grid { grid-template-columns: 1fr; }
+  .export-grid { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+}
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--aged); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ══ COLLAPSIBLE SECTIONS ═══════════════════════════════ */
+.coll-head {
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px;
+  padding: 6px 0; border-bottom: 1px solid var(--border); margin-bottom: 10px; user-select: none;
+}
+.coll-head:hover { color: var(--ink); }
+.coll-arr { transition: transform .2s; }
+.coll-body { }
+</style>
+</head>
+<body>
+
+<!-- ══ API KEY MODAL ══════════════════════════════════ -->
+<div id="api-modal">
+  <div class="api-box">
+    <div class="api-title">🗝 API Keys Setup</div>
+    <div class="api-sub">Enter your API keys to enable AI script generation, real image creation, and voiceover audio. Keys are stored only in your browser — never sent to any server other than each API provider directly.</div>
+
+    <div class="api-field">
+      <div class="api-label"><span class="api-dot" style="background:#7F77DD"></span> Anthropic Claude API Key <span style="color:#e74c3c;font-size:10px">REQUIRED</span></div>
+      <input class="api-input" id="k-claude" type="password" placeholder="sk-ant-api03-..." />
+      <div class="api-note">Get yours free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — powers script & dialogue generation</div>
+    </div>
+
+    <div class="api-field">
+      <div class="api-label"><span class="api-dot" style="background:#FF6B35"></span> fal.ai API Key <span style="color:var(--muted);font-size:10px">For image generation</span></div>
+      <input class="api-input" id="k-fal" type="password" placeholder="fal-..." />
+      <div class="api-note">Get yours at <a href="https://fal.ai/dashboard/keys" target="_blank">fal.ai/dashboard/keys</a> — generates Bob Browne-style doodle images using FLUX</div>
+    </div>
+
+    <div class="api-field">
+      <div class="api-label"><span class="api-dot" style="background:#E74C3C"></span> ElevenLabs API Key <span style="color:var(--muted);font-size:10px">For voiceovers</span></div>
+      <input class="api-input" id="k-eleven" type="password" placeholder="sk_..." />
+      <div class="api-note">Get yours at <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank">elevenlabs.io/app/settings/api-keys</a> — generates PNG-accented male & female audio voiceovers</div>
+    </div>
+
+    <button class="api-save" onclick="saveKeys()">Save Keys & Launch Studio</button>
+    <button class="api-skip" onclick="skipKeys()">Skip for now (script-only mode)</button>
+
+    <div class="api-status" id="api-status"></div>
+  </div>
+</div>
+
+<!-- ══ TOP BAR ════════════════════════════════════════ -->
+<div id="topbar">
+  <div class="tb-inner">
+    <div class="tb-logo">
+      <div class="tb-logo-badge">PDS</div>
+      <div>
+        PNG Doodle Studio
+        <small>Mista Grasruts AI Creator · v3</small>
+      </div>
+    </div>
+    <nav class="tb-nav">
+      <button class="on" onclick="gp('home',this)">Home</button>
+      <button onclick="gp('script',this)">Script Studio</button>
+      <button onclick="gp('comic',this)">Comic Creator</button>
+      <button onclick="gp('govt',this)">Govt Course</button>
+      <button onclick="gp('voices',this)">Voices</button>
+      <button onclick="gp('chars',this)">Characters</button>
+      <button onclick="gp('keys',this)">⚙ API Keys</button>
+    </nav>
+    <div class="tb-actions">
+      <button class="tb-btn tb-btn-outline" onclick="exportAllJSON()">Export All</button>
+      <button class="tb-btn tb-btn-gold" onclick="exportFullScript()">Download</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ════════════════════════════════════════════════════
+     HOME PAGE
+════════════════════════════════════════════════════ -->
+<div class="page on" id="page-home">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">Quick Start <span class="pill">3 Steps</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:26px;height:26px;background:var(--green);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">1</div>
+          <div><div style="font-size:12px;font-weight:800">Set your API keys</div><div style="font-size:11px;font-weight:600;color:var(--muted)">Claude, fal.ai &amp; ElevenLabs</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:26px;height:26px;background:var(--gold);color:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">2</div>
+          <div><div style="font-size:12px;font-weight:800">Choose mode &amp; topic</div><div style="font-size:11px;font-weight:600;color:var(--muted)">Script, Comic, or Govt Course</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:26px;height:26px;background:var(--red);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">3</div>
+          <div><div style="font-size:12px;font-weight:800">Generate &amp; export</div><div style="font-size:11px;font-weight:600;color:var(--muted)">Script + images + audio in one click</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Bob Browne Style</div>
+      <div class="card-body" style="font-size:12px;font-weight:600;color:var(--muted);line-height:1.7">
+        <p>✏️ <strong style="color:var(--ink)">Bold ink outlines</strong> — thick, confident strokes with weight</p>
+        <p style="margin-top:7px">😄 <strong style="color:var(--ink)">Exaggerated faces</strong> — round heads, wide eyes, big mouths</p>
+        <p style="margin-top:7px">🎨 <strong style="color:var(--ink)">Flat colour fills</strong> — no gradients, strong saturated tones</p>
+        <p style="margin-top:7px">🗨️ <strong style="color:var(--ink)">Tok Pisin speech bubbles</strong> — handwritten, authentic pidgin</p>
+        <p style="margin-top:7px">🌴 <strong style="color:var(--ink)">PNG props every scene</strong> — bilum, kundu, PMV, kaukau, haus win</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">API Status</div>
+      <div class="card-body" id="home-api-status"></div>
+    </div>
+  </div>
+
+  <div class="main-col">
+    <div class="banner">
+      <div class="banner-title">🇵🇬 PNG Doodle Studio v3</div>
+      <div class="banner-sub">Fully AI-powered creation tool for Bob Browne–style colour animated video scripts, real AI doodle image generation, and PNG-accented voiceover audio. Built for the PNG Government System video course, advocacy comics and community awareness campaigns.</div>
+      <div class="banner-pills">
+        <span class="bp bp-g">AI Doodle Images (FLUX)</span>
+        <span class="bp bp-y">PNG Voiceover Audio (ElevenLabs)</span>
+        <span class="bp bp-r">Govt Course Scripts (Claude)</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Choose Creation Mode</div>
+      <div class="card-body">
+        <div class="mode-grid">
+          <div class="mc on" id="mc-course" onclick="setMode('course',this)"><div class="mc-icon">🏛️</div><div class="mc-name">Govt Course</div><div class="mc-desc">PNG Government System animated video course for politicians &amp; public</div></div>
+          <div class="mc" id="mc-comic" onclick="setMode('comic',this)"><div class="mc-icon">📰</div><div class="mc-name">Comic Strip</div><div class="mc-desc">Mista Grasruts-style PNG comic panels with Tok Pisin dialogue</div></div>
+          <div class="mc" id="mc-advocacy" onclick="setMode('advocacy',this)"><div class="mc-icon">📢</div><div class="mc-name">Advocacy</div><div class="mc-desc">Awareness &amp; social issue campaigns — health, corruption, environment</div></div>
+          <div class="mc" id="mc-education" onclick="setMode('education',this)"><div class="mc-icon">📚</div><div class="mc-name">Education</div><div class="mc-desc">School curricula &amp; community learning in PNG language and culture</div></div>
+          <div class="mc" id="mc-culture" onclick="setMode('culture',this)"><div class="mc-icon">🪘</div><div class="mc-name">Culture</div><div class="mc-desc">Celebrate PNG culture — sing-sing, tumbuna stories, language</div></div>
+          <div class="mc" id="mc-custom" onclick="setMode('custom',this)"><div class="mc-icon">✏️</div><div class="mc-name">Custom</div><div class="mc-desc">Full creative control — any topic, any format</div></div>
+        </div>
+        <div style="margin-top:1rem;text-align:center">
+          <button class="big-btn big-btn-green" style="max-width:280px;display:inline-block" onclick="gp('script',document.querySelector('.tb-nav button:nth-child(2)'))">Open Script Studio →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Govt Course Modules <span class="pill">12 Episodes</span></div>
+      <div class="card-body"><div id="home-modules" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SCRIPT STUDIO
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-script">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">Script Setup</div>
+      <div class="card-body">
+        <div class="field"><label class="fl">Video title / topic</label><input type="text" id="s-title" placeholder="e.g. How Parliament works in PNG" /></div>
+        <div class="field"><label class="fl">Video length</label>
+          <select id="s-len"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min — 1 hour</option></select>
+        </div>
+        <div class="field"><label class="fl">PNG region</label>
+          <select id="s-region"><option value="NCD">NCD — Port Moresby / Waigani</option><option value="Highlands">Highlands — Mt Hagen, Goroka</option><option value="Momase">Momase — Lae, Madang, Wewak</option><option value="Islands">Islands — Rabaul, Manus, Bougainville</option><option value="Southern">Southern — Gulf, Western, Milne Bay</option><option value="PNG-wide">Pan-PNG (mix of regions)</option></select>
+        </div>
+        <div class="field"><label class="fl">Audience</label>
+          <select id="s-audience"><option value="intending-politicians" selected>Intending politicians</option><option value="general-public">General public</option><option value="youth">Youth (16–25)</option><option value="women-groups">Women's groups</option><option value="community-leaders">Community leaders</option><option value="school-students">School students</option></select>
+        </div>
+        <div class="field"><label class="fl">Drawing style</label>
+          <select id="s-draw"><option value="classic-browne" selected>Classic Bob Browne (ink line, flat colour)</option><option value="coloured-browne">Coloured Browne (bold flat palette)</option><option value="newspaper">Wantok newspaper (B&W + spot colour)</option><option value="modern-png">Modern PNG digital comic</option></select>
+        </div>
+        <div class="field"><label class="fl">Colour palette</label>
+          <select id="s-palette"><option value="highlands" selected>Highlands — red, gold, green, earth</option><option value="coastal">Coastal — ocean blue, coral, sandy</option><option value="rainforest">Rainforest — deep greens, brown</option><option value="festival">Festival — bilum rainbow</option><option value="flag">PNG Flag — red, black, gold</option></select>
+        </div>
+        <div class="field"><label class="fl">Story mood</label>
+          <select id="s-mood"><option value="comedic" selected>Comedic &amp; wantok warmth</option><option value="educational">Informative &amp; practical</option><option value="satirical">Satirical (Grasruts style)</option><option value="inspirational">Inspirational &amp; empowering</option><option value="dramatic">Dramatic &amp; serious</option></select>
+        </div>
+        <div class="field"><label class="fl">Cultural elements</label>
+          <div class="chips" id="s-culture">
+            <span class="chip on" data-v="Bilak maket">Bilak maket</span>
+            <span class="chip on" data-v="Wantok system">Wantok</span>
+            <span class="chip" data-v="PMV buses">PMV buses</span>
+            <span class="chip on" data-v="Garden & kaukau farming">Garden</span>
+            <span class="chip" data-v="Sing-sing & dancing">Sing-sing</span>
+            <span class="chip" data-v="Buai (betel nut)">Buai</span>
+            <span class="chip" data-v="Haus tambaran">Haus tambaran</span>
+            <span class="chip" data-v="Rugby league">Rugby</span>
+            <span class="chip" data-v="Tumbuna stories">Tumbuna</span>
+          </div>
+        </div>
+        <div class="field"><label class="fl">Outline / key points</label><textarea id="s-outline" placeholder="Add your key messages or outline in English or Tok Pisin…"></textarea></div>
+        <div class="notice n-gold" style="font-size:11px">💡 After generating the script, click "Generate Image" on each scene to create a real AI doodle illustration, and "Generate Audio" to create voiceover MP3s.</div>
+        <button class="big-btn big-btn-green" id="s-btn" onclick="generateScript()">Generate Script + Scenes</button>
+      </div>
+    </div>
+  </div>
+  <div class="main-col" id="s-output">
+    <div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">🎬</div><div class="empty-title">Ready to generate</div><div class="empty-sub">Fill in the setup panel and click Generate to create your PNG animated video script with AI images and voiceovers.</div></div></div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     COMIC CREATOR
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-comic">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">Comic Setup</div>
+      <div class="card-body">
+        <div class="field"><label class="fl">Comic topic / issue</label><input type="text" id="c-topic" placeholder="e.g. Corruption in a village council" /></div>
+        <div class="field"><label class="fl">Number of panels</label>
+          <select id="c-panels"><option value="3">3 panels (quick gag)</option><option value="4" selected>4 panels (short story)</option><option value="6">6 panels (full strip)</option><option value="8">8 panels (extended)</option><option value="12">12 panels (full page)</option></select>
+        </div>
+        <div class="field"><label class="fl">Comic style</label>
+          <select id="c-style"><option value="grasruts" selected>Mista Grasruts (satire, bilak maket)</option><option value="advocacy">Advocacy (serious, informative)</option><option value="educational">Educational (teach a concept)</option><option value="humour">Pure humour (everyday PNG life)</option><option value="political">Political commentary</option></select>
+        </div>
+        <div class="field"><label class="fl">Main character</label>
+          <select id="c-char"><option value="Mista Grasruts" selected>Mista Grasruts</option><option value="Agnes">Agnes (with sospen)</option><option value="Big Fella Chief">Big Fella Chief</option><option value="Pikinini">Pikinini</option><option value="Tisa">Tisa</option><option value="Maket Meri">Maket Meri</option><option value="Wantok Pren">Wantok Pren</option></select>
+        </div>
+        <div class="field"><label class="fl">Setting / location</label><input type="text" id="c-setting" placeholder="e.g. Six Mile bilak maket, Port Moresby" /></div>
+        <div class="field"><label class="fl">Punchline / moral (optional)</label><textarea id="c-moral" placeholder="What's the takeaway message or joke ending?" style="min-height:60px"></textarea></div>
+        <button class="big-btn big-btn-green" id="c-btn" onclick="generateComic()">Generate Comic Strip</button>
+      </div>
+    </div>
+  </div>
+  <div class="main-col" id="c-output">
+    <div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📰</div><div class="empty-title">Comic strip generator</div><div class="empty-sub">Generate panel-by-panel Bob Browne–style comic strips with AI doodle images and Tok Pisin dialogue.</div></div></div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     GOVT COURSE
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-govt">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">Course Module</div>
+      <div class="card-body">
+        <div class="field"><label class="fl">Select module</label>
+          <select id="g-module" onchange="prefillGovt()">
+            <option value="">— Choose a module —</option>
+            <option value="constitution">PNG Constitution &amp; Its Principles</option>
+            <option value="parliament">How Parliament Works</option>
+            <option value="elections">Electoral System &amp; How to Vote</option>
+            <option value="executive">The Executive — PM &amp; Cabinet</option>
+            <option value="judiciary">Judiciary &amp; Rule of Law</option>
+            <option value="provincial">Provincial &amp; Local Level Govt</option>
+            <option value="budget">National Budget &amp; Public Finance</option>
+            <option value="corruption">Corruption — What It Is &amp; How to Fight It</option>
+            <option value="rights">Citizen Rights &amp; Responsibilities</option>
+            <option value="womens-rights">Women in Leadership &amp; Politics</option>
+            <option value="candidates">How to Become a Candidate</option>
+            <option value="campaigning">Ethical Campaigning</option>
+          </select>
+        </div>
+        <div class="field"><label class="fl">Episode length</label>
+          <select id="g-len"><option value="5">5 min (intro)</option><option value="10" selected>10 min (standard)</option><option value="15">15 min (detailed)</option><option value="20">20 min (deep dive)</option></select>
+        </div>
+        <div class="field"><label class="fl">Primary audience</label>
+          <select id="g-audience"><option value="intending-politicians" selected>Intending politicians</option><option value="general-public">General public</option><option value="women-candidates">Women candidates</option><option value="first-time-voters">First-time voters</option><option value="community-leaders">Community / village leaders</option></select>
+        </div>
+        <div class="field"><label class="fl">Language mix</label>
+          <select id="g-lang"><option value="tok-pisin-dominant" selected>Mostly Tok Pisin + English terms</option><option value="english-dominant">Mostly English + Tok Pisin phrases</option><option value="tok-pisin-only">Full Tok Pisin</option></select>
+        </div>
+        <div class="field"><label class="fl">Learning objectives</label><textarea id="g-obj" placeholder="What should the audience know after watching?" style="min-height:65px"></textarea></div>
+        <button class="big-btn big-btn-green" id="g-btn" onclick="generateGovt()">Generate Course Episode</button>
+      </div>
+    </div>
+  </div>
+  <div class="main-col" id="g-output">
+    <div class="card">
+      <div class="card-head">PNG Government System — Video Course</div>
+      <div class="card-body">
+        <div class="notice n-green">This tool creates animated video course episodes using Bob Browne–style caricatures to explain PNG government, democracy and civic rights to intending politicians and the general public.</div>
+        <div id="g-modules-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     VOICES
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-voices">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">ElevenLabs Voices</div>
+      <div class="card-body">
+        <div class="notice n-gold" style="font-size:11px">The studio uses ElevenLabs to generate real PNG-accented audio. Selected voices are used in all scene voiceover generation.</div>
+        <div style="margin-top:10px;font-size:12px;font-weight:700;color:var(--ink)">Voice ID mapping</div>
+        <div style="margin-top:6px;font-size:11px;font-weight:600;color:var(--muted);line-height:1.8">
+          Male voices use ElevenLabs voice IDs that approximate a warm Melanesian cadence. Female voices use alto/warm tones. You can override voice IDs below with any ElevenLabs voice ID from their voice library.
+        </div>
+        <div style="margin-top:12px" class="field">
+          <label class="fl">Male voice ID override</label>
+          <input type="text" id="v-male-id" placeholder="ElevenLabs voice ID (optional)" />
+        </div>
+        <div class="field">
+          <label class="fl">Female voice ID override</label>
+          <input type="text" id="v-female-id" placeholder="ElevenLabs voice ID (optional)" />
+        </div>
+        <div class="notice n-blue" style="font-size:11px;margin-top:8px">Find voice IDs at <strong>elevenlabs.io/voice-library</strong>. Search for warm, deep, or African/Pacific voices for best PNG match.</div>
+      </div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="card">
+      <div class="card-head">Male Voice Characters</div>
+      <div class="card-body">
+        <div class="vgrid" id="v-male-grid">
+          <div class="vc on" data-vid="TxGEqnHWrfWFTfGW9XjX" onclick="selVoice('male',this)"><div class="vc-icon">👨🏿</div><div class="vc-name">Brata Paul</div><div class="vc-desc">Highlands man. Deep, warm, Tok Pisin-dominant. Storytelling tone.</div></div>
+          <div class="vc" data-vid="VR6AewLTigWG4xSOukaG" onclick="selVoice('male',this)"><div class="vc-icon">👴🏿</div><div class="vc-name">Tumbuna Tom</div><div class="vc-desc">Village elder. Slow, wise, coastal accent. Traditional proverbs.</div></div>
+          <div class="vc" data-vid="pNInz6obpgDQGcFmaJgB" onclick="selVoice('male',this)"><div class="vc-icon">👦🏿</div><div class="vc-name">Yangpela Mike</div><div class="vc-desc">Urban NCD youth. Fast, energetic, Tok Pisin + English mix.</div></div>
+          <div class="vc" data-vid="N2lVS1w4EtoT3dr4eOWO" onclick="selVoice('male',this)"><div class="vc-icon">👨🏿‍💼</div><div class="vc-name">Masta Leo</div><div class="vc-desc">Educated professional. Clear formal English with PNG intonation.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Female Voice Characters</div>
+      <div class="card-body">
+        <div class="vgrid" id="v-female-grid">
+          <div class="vc on" data-vid="EXAVITQu4vr4xnSDxMaL" onclick="selVoice('female',this)"><div class="vc-icon">👩🏿</div><div class="vc-name">Mama Agnes</div><div class="vc-desc">Market woman. Strong, direct, no-nonsense. Bilak maket authority.</div></div>
+          <div class="vc" data-vid="MF3mGyEYCl7XYWbV9V6O" onclick="selVoice('female',this)"><div class="vc-icon">👩🏿‍🏫</div><div class="vc-name">Tisa Maria</div><div class="vc-desc">Schoolteacher. Clear, patient, encouraging. Island lilt.</div></div>
+          <div class="vc" data-vid="ThT5KcBeYPX3keUQqHPh" onclick="selVoice('female',this)"><div class="vc-icon">👧🏿</div><div class="vc-name">Sista Bel</div><div class="vc-desc">Young Lae woman. Cheerful, confident, modern Momase accent.</div></div>
+          <div class="vc" data-vid="XrExE9yKIg1WjnnlVkGX" onclick="selVoice('female',this)"><div class="vc-icon">👵🏿</div><div class="vc-name">Bubu Rose</div><div class="vc-desc">Grandmother narrator. Soft melodic storytelling. Island lilt.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Test Voice</div>
+      <div class="card-body">
+        <div class="field"><label class="fl">Test text</label><textarea id="v-test-text" style="min-height:60px">Gutpela moning, ol wantok! Tude yumi lanim hau gavman bilong Papua Niugini i wok.</textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="sm-btn sm-btn-blue" onclick="testVoice('male')">▶ Test Male Voice</button>
+          <button class="sm-btn sm-btn-red" onclick="testVoice('female')">▶ Test Female Voice</button>
+        </div>
+        <div id="v-test-output" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     CHARACTERS
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-chars">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">Active Cast <span class="pill" id="cast-count">2</span></div>
+      <div class="card-body">
+        <div class="notice n-gold" style="font-size:11px;margin-bottom:10px">Select up to 4 characters. They appear in all generated scripts and image prompts.</div>
+        <div id="active-cast" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Add Custom Character</div>
+      <div class="card-body">
+        <div class="field"><label class="fl">Name</label><input type="text" id="cc-name" placeholder="e.g. Mista Paster" /></div>
+        <div class="field"><label class="fl">Role / description</label><textarea id="cc-desc" placeholder="Personality, appearance, voice, and role in stories…" style="min-height:60px"></textarea></div>
+        <button class="big-btn big-btn-gold" onclick="addCustomChar()" style="font-size:16px;padding:10px">Add Character</button>
+      </div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="card">
+      <div class="card-head">Character Roster — Bob Browne PNG Style</div>
+      <div class="card-body"><div class="cgrid" id="char-roster"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Character Drawing Notes</div>
+      <div class="card-body" style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.7">
+        <ul style="display:flex;flex-direction:column;gap:9px;padding-left:1.1rem">
+          <li><strong>Mista Grasruts</strong> — scruffy beard, worn shorts, singlet, thongs. Slightly stooped. Cigarette optional. Mid-scheme or scheme-gone-wrong expression.</li>
+          <li><strong>Agnes</strong> — strong build, laplap skirt, hair back. Famous sospen (saucepan) prop. Stern to exasperated to quietly knowing.</li>
+          <li><strong>Big Fella Chief</strong> — oversized suit jacket, briefcase, hat. Pompous posture. Large belly. Wide smile hiding shifty eyes.</li>
+          <li><strong>Pikinini</strong> — small, barefoot, shorts too big. Constant curiosity. Asks what adults won't.</li>
+          <li><strong>Tisa</strong> — neat dress/blouse, glasses, chalk or book. Patient warm smile. Voice of reason.</li>
+          <li><strong>Maket Meri</strong> — bilum bag on back/head, market stall. Assertive, confident stance. Practical clothing.</li>
+          <li><strong>Highlander</strong> — traditional wig, koteka, red-black body paint. Strong stance. Culture-clash comedy in urban settings.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     API KEYS SETTINGS
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-keys">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-head">Current Status</div>
+      <div class="card-body" id="keys-status-panel"></div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="card">
+      <div class="card-head">Update API Keys</div>
+      <div class="card-body">
+        <div class="notice n-gold">Keys are stored in your browser's localStorage. They are never transmitted anywhere except directly to each API provider's endpoint.</div>
+        <div style="margin-top:1rem;display:flex;flex-direction:column;gap:12px">
+          <div><label class="fl">Anthropic Claude API Key (Required)</label><input class="api-input" id="k2-claude" type="password" placeholder="sk-ant-api03-…" /><div class="api-note"><a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — powers all script generation</div></div>
+          <div><label class="fl">fal.ai API Key (For AI images)</label><input class="api-input" id="k2-fal" type="password" placeholder="fal-…" /><div class="api-note"><a href="https://fal.ai/dashboard/keys" target="_blank">fal.ai/dashboard/keys</a> — generates FLUX doodle illustrations</div></div>
+          <div><label class="fl">ElevenLabs API Key (For voiceover audio)</label><input class="api-input" id="k2-eleven" type="password" placeholder="sk_…" /><div class="api-note"><a href="https://elevenlabs.io/app/settings/api-keys" target="_blank">elevenlabs.io</a> — generates PNG-accented MP3 voiceovers</div></div>
+          <button class="big-btn big-btn-green" onclick="updateKeys()">Save Updated Keys</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .app -->
+
+<script>
+// ════════ STATE ════════════════════════════════════════
+const S = {
+  claudeKey: '', falKey: '', elevenKey: '',
+  maleVoiceId: 'TxGEqnHWrfWFTfGW9XjX',
+  femaleVoiceId: 'EXAVITQu4vr4xnSDxMaL',
+  maleVoiceName: 'Brata Paul',
+  femaleVoiceName: 'Mama Agnes',
+  chars: new Set(['grasruts','agnes']),
+  culture: new Set(['Bilak maket','Wantok system','Garden & kaukau farming']),
+  mode: 'course',
+  scenes: [], comicPanels: [], govtScenes: []
+};
+
+const PALETTES = {
+  highlands: ['#C0392B','#D4AC0D','#2D6A4F','#8B4513','#F4D03F'],
+  coastal: ['#1A5276','#1ABC9C','#F39C12','#3498DB','#A8E6CF'],
+  rainforest: ['#1B5E20','#558B2F','#9CCC65','#795548','#F9A825'],
+  festival: ['#E91E63','#FF9800','#FFEB3B','#4CAF50','#2196F3'],
+  flag: ['#C0392B','#2C1A0A','#D4AC0D','#F5CBA7','#3498DB']
+};
+
+const CHARS_DB = [
+  {id:'grasruts',face:'🧔🏿',name:'Mista Grasruts',role:'Knockabout everyman, bilak maket trader, social conscience of PNG'},
+  {id:'agnes',face:'👩🏿‍🍳',name:'Agnes',role:"Long-suffering wife, voice of reason, wields the famous sospen"},
+  {id:'pikinini',face:'👦🏿',name:'Pikinini',role:'Curious child asking the questions adults won\'t'},
+  {id:'chief',face:'👴🏿',name:'Big Fella Chief',role:'Local politician, full of promises, oversized suit, shifty eyes'},
+  {id:'tisa',face:'👩🏿‍🏫',name:'Tisa',role:'Community teacher, patient, wise, holds chalk or book'},
+  {id:'wantok',face:'🧑🏿',name:'Wantok Pren',role:'Best friend, always needs a favour, embodies the wantok system'},
+  {id:'maket-meri',face:'👩🏿‍🌾',name:'Maket Meri',role:'Market woman, sells kaukau & buai, assertive & confident'},
+  {id:'highlander',face:'💪🏿',name:'Highlands Man',role:'Traditional warrior, bilum & wig, culture-clash comedy in urban settings'},
+  {id:'pastor',face:'🧑🏿‍⚖️',name:'Mista Paster',role:'Community pastor, moral authority, occasionally hypocritical'},
+  {id:'narrator',face:'🗣️',name:'Narrator',role:'Off-screen voice only, no character drawing required'},
+];
+
+const GOVT_MODS = [
+  {id:'constitution',title:'PNG Constitution',desc:'Principles, rights, freedoms and independence spirit'},
+  {id:'parliament',title:'How Parliament Works',desc:'MPs, National Parliament, legislation process'},
+  {id:'elections',title:'Electoral System',desc:'Limited Preferential Voting and how to vote'},
+  {id:'executive',title:'Executive Government',desc:'PM, Cabinet, Ministers and how decisions are made'},
+  {id:'judiciary',title:'Judiciary & Rule of Law',desc:'Courts, justice, independence of judiciary'},
+  {id:'provincial',title:'Provincial & LLG Govt',desc:'Three-tier government system and local roles'},
+  {id:'budget',title:'National Budget',desc:'How public money is raised, allocated and spent'},
+  {id:'corruption',title:'Corruption & Accountability',desc:'What corruption costs PNG and how citizens fight back'},
+  {id:'rights',title:'Citizen Rights',desc:'Rights, responsibilities and civic participation'},
+  {id:'womens-rights',title:'Women in Leadership',desc:'Gender equity, women candidates and reserved seats'},
+  {id:'candidates',title:'Becoming a Candidate',desc:'Eligibility, nomination, Electoral Commission'},
+  {id:'campaigning',title:'Ethical Campaigning',desc:'Rules, vote-buying laws and community engagement'},
+];
+
+// ════════ INIT ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadKeys();
+  renderCharRoster();
+  renderHomeModules();
+  renderGovtModulesGrid();
+  setupChips();
+  updateApiStatusBadges();
+});
+
+function loadKeys() {
+  S.claudeKey = localStorage.getItem('png_claude') || '';
+  S.falKey = localStorage.getItem('png_fal') || '';
+  S.elevenKey = localStorage.getItem('png_eleven') || '';
+  if (S.claudeKey) {
+    document.getElementById('api-modal').style.display = 'none';
+  }
+  // pre-fill update fields
+  if(document.getElementById('k2-claude')) document.getElementById('k2-claude').value = S.claudeKey ? '••••••••' : '';
+}
+
+function saveKeys() {
+  const c = document.getElementById('k-claude').value.trim();
+  const f = document.getElementById('k-fal').value.trim();
+  const e = document.getElementById('k-eleven').value.trim();
+  if (!c) { alert('Anthropic Claude key is required to generate scripts.'); return; }
+  S.claudeKey = c; S.falKey = f; S.elevenKey = e;
+  localStorage.setItem('png_claude', c);
+  if(f) localStorage.setItem('png_fal', f);
+  if(e) localStorage.setItem('png_eleven', e);
+  document.getElementById('api-modal').style.display = 'none';
+  updateApiStatusBadges();
+}
+
+function skipKeys() {
+  document.getElementById('api-modal').style.display = 'none';
+}
+
+function updateKeys() {
+  const c = document.getElementById('k2-claude').value.trim();
+  const f = document.getElementById('k2-fal').value.trim();
+  const e = document.getElementById('k2-eleven').value.trim();
+  if(c && !c.startsWith('••')) { S.claudeKey = c; localStorage.setItem('png_claude', c); }
+  if(f) { S.falKey = f; localStorage.setItem('png_fal', f); }
+  if(e) { S.elevenKey = e; localStorage.setItem('png_eleven', e); }
+  updateApiStatusBadges();
+  alert('Keys updated successfully!');
+}
+
+function updateApiStatusBadges() {
+  const badges = [
+    {key: S.claudeKey, label: 'Claude (scripts)', color: '#7F77DD'},
+    {key: S.falKey, label: 'fal.ai (images)', color: '#FF6B35'},
+    {key: S.elevenKey, label: 'ElevenLabs (audio)', color: '#E74C3C'},
+  ];
+  const html = badges.map(b =>
+    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
+      <div style="width:10px;height:10px;border-radius:50%;background:${b.key ? '#2D8B58' : '#C0392B'};flex-shrink:0"></div>
+      <span style="font-size:12px;font-weight:700;color:var(--ink)">${b.label}</span>
+      <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;${b.key ? 'background:var(--green-pale);color:var(--green)' : 'background:var(--red-pale);color:var(--red)'}">${b.key ? 'Connected' : 'Not set'}</span>
+    </div>`).join('');
+  ['home-api-status','keys-status-panel'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = html; });
+}
+
+// ════════ NAVIGATION ═══════════════════════════════════
+function gp(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tb-nav button').forEach(b => b.classList.remove('on'));
+  document.getElementById('page-' + name)?.classList.add('on');
+  if(btn) btn.classList.add('on');
+}
+
+function setMode(m, el) {
+  S.mode = m;
+  document.querySelectorAll('.mc').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ════════ CHARACTERS ═══════════════════════════════════
+function renderCharRoster() {
+  const el = document.getElementById('char-roster');
+  if(!el) return;
+  el.innerHTML = CHARS_DB.map(c => `
+    <div class="cc ${S.chars.has(c.id)?'on':''}" data-id="${c.id}" onclick="toggleChar('${c.id}',this)">
+      <div class="cc-face">${c.face}</div>
+      <div class="cc-name">${c.name}</div>
+      <div class="cc-role">${c.role}</div>
+    </div>`).join('');
+  renderActiveCast();
+}
+
+function toggleChar(id, el) {
+  if(S.chars.has(id)) { if(S.chars.size <= 1) return; S.chars.delete(id); el.classList.remove('on'); }
+  else { if(S.chars.size >= 4) return; S.chars.add(id); el.classList.add('on'); }
+  renderActiveCast();
+}
+
+function renderActiveCast() {
+  const el = document.getElementById('active-cast');
+  const cnt = document.getElementById('cast-count');
+  if(cnt) cnt.textContent = S.chars.size;
+  if(!el) return;
+  el.innerHTML = [...S.chars].map(id => {
+    const c = CHARS_DB.find(x=>x.id===id);
+    if(!c) return '';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--green-pale);border-radius:8px;border:1px solid var(--green)">
+      <span style="font-size:18px">${c.face}</span>
+      <div><div style="font-size:12px;font-weight:800">${c.name}</div><div style="font-size:10px;font-weight:600;color:var(--muted)">${c.role.substring(0,42)}…</div></div>
+    </div>`;
+  }).join('');
+}
+
+function addCustomChar() {
+  const name = document.getElementById('cc-name').value.trim();
+  const desc = document.getElementById('cc-desc').value.trim();
+  if(!name) return;
+  const id = 'custom_' + Date.now();
+  CHARS_DB.push({id, face:'🧑🏿', name, role: desc || 'Custom character'});
+  renderCharRoster();
+  document.getElementById('cc-name').value = '';
+  document.getElementById('cc-desc').value = '';
+}
+
+// ════════ CHIPS SETUP ══════════════════════════════════
+function setupChips() {
+  document.querySelectorAll('.chips .chip').forEach(c => {
+    if(c.classList.contains('on')) S.culture.add(c.dataset.v);
+    c.addEventListener('click', () => {
+      c.classList.toggle('on');
+      c.classList.contains('on') ? S.culture.add(c.dataset.v) : S.culture.delete(c.dataset.v);
+    });
+  });
+}
+
+// ════════ VOICES ════════════════════════════════════════
+function selVoice(gender, el) {
+  const grid = gender === 'male' ? '#v-male-grid' : '#v-female-grid';
+  document.querySelectorAll(grid + ' .vc').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  if(gender === 'male') { S.maleVoiceId = el.dataset.vid; S.maleVoiceName = el.querySelector('.vc-name').textContent; }
+  else { S.femaleVoiceId = el.dataset.vid; S.femaleVoiceName = el.querySelector('.vc-name').textContent; }
+}
+
+async function testVoice(gender) {
+  if(!S.elevenKey) { alert('Please set your ElevenLabs API key first.'); return; }
+  const text = document.getElementById('v-test-text').value.trim();
+  const voiceId = gender === 'male' ? (document.getElementById('v-male-id').value || S.maleVoiceId) : (document.getElementById('v-female-id').value || S.femaleVoiceId);
+  const out = document.getElementById('v-test-output');
+  out.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--muted)">Generating audio…</div>';
+  const audioUrl = await generateAudio(text, voiceId);
+  if(audioUrl) out.innerHTML = `<audio controls style="width:100%" src="${audioUrl}"></audio>`;
+  else out.innerHTML = '<div style="font-size:12px;color:var(--red)">Audio generation failed. Check your ElevenLabs key.</div>';
+}
+
+// ════════ HOME MODULES ═════════════════════════════════
+function renderHomeModules() {
+  const el = document.getElementById('home-modules');
+  if(!el) return;
+  el.innerHTML = GOVT_MODS.slice(0,8).map(m => `
+    <div onclick="loadGovtModule('${m.id}')" style="padding:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .12s" onmouseover="this.style.borderColor='var(--green2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:12px;font-weight:800">${m.title}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px">${m.desc}</div>
+    </div>`).join('');
+}
+
+function renderGovtModulesGrid() {
+  const el = document.getElementById('g-modules-grid');
+  if(!el) return;
+  el.innerHTML = GOVT_MODS.map(m => `
+    <div onclick="loadGovtModule('${m.id}')" style="padding:10px;background:var(--cream);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .12s" onmouseover="this.style.borderColor='var(--green2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:12px;font-weight:800">${m.title}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px">${m.desc}</div>
+    </div>`).join('');
+}
+
+function loadGovtModule(id) {
+  const m = GOVT_MODS.find(x=>x.id===id);
+  if(!m) return;
+  const sel = document.getElementById('g-module');
+  if(sel) sel.value = id;
+  document.getElementById('g-obj').value = 'Key objectives: ' + m.desc;
+  gp('govt', document.querySelector('.tb-nav button:nth-child(4)'));
+}
+
+function prefillGovt() {
+  const id = document.getElementById('g-module').value;
+  const m = GOVT_MODS.find(x=>x.id===id);
+  if(m) document.getElementById('g-obj').value = 'Key objectives: ' + m.desc;
+}
+
+// ════════ CLAUDE API ════════════════════════════════════
+async function callClaude(prompt, maxTokens = 4000) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': S.claudeKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error?.message || 'Claude API error');
+  return data.content.map(b => b.text || '').join('');
+}
+
+// ════════ FAL.AI IMAGE GENERATION ══════════════════════
+async function generateImage(prompt) {
+  if(!S.falKey) return null;
+  try {
+    // Build a Bob Browne style image prompt
+    const styledPrompt = `${prompt}, Bob Browne comic book style, PNG Papua New Guinea cartoon illustration, bold thick ink outlines, flat color fills no gradients, expressive exaggerated faces, white background, comic strip panel art, black ink outline drawing style, saturated colors, hand-drawn ink illustration, clear bold lines, simple cartoon style, Pacific Island characters`;
+    const negPrompt = 'photorealistic, photo, gradient, soft edges, blurry, 3D render, anime, manga, western superhero, text, watermark, nsfw';
+
+    const res = await fetch('https://fal.run/fal-ai/flux/schnell', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Key ${S.falKey}` },
+      body: JSON.stringify({
+        prompt: styledPrompt,
+        image_size: 'landscape_4_3',
+        num_inference_steps: 4,
+        num_images: 1,
+        enable_safety_checker: true
+      })
+    });
+    const data = await res.json();
+    return data?.images?.[0]?.url || null;
+  } catch(e) { console.error('Image gen error:', e); return null; }
+}
+
+// ════════ ELEVENLABS AUDIO ══════════════════════════════
+async function generateAudio(text, voiceId) {
+  if(!S.elevenKey) return null;
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'xi-api-key': S.elevenKey },
+      body: JSON.stringify({
+        text: text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.42, similarity_boost: 0.78, style: 0.15, use_speaker_boost: true }
+      })
+    });
+    if(!res.ok) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch(e) { console.error('Audio gen error:', e); return null; }
+}
+
+// ════════ LOADING HELPERS ═══════════════════════════════
+function showLoading(targetId, msg, steps) {
+  const stepsHtml = steps ? `<ul class="step-list">${steps.map((s,i) => `<li class="step-item" id="step-${i}"><span class="step-dot"></span>${s}</li>`).join('')}</ul>` : '';
+  document.getElementById(targetId).innerHTML = `<div class="loading"><div class="spin"></div><div class="load-msg">${msg}</div><div class="load-sub">AI-powered content generation in progress…</div><div class="pbar"><div class="pfill" id="pfill" style="width:5%"></div></div>${stepsHtml}</div>`;
+  let p = 5;
+  const iv = setInterval(() => {
+    p = Math.min(p + Math.random() * 4, 88);
+    const pf = document.getElementById('pfill');
+    if(pf) pf.style.width = p + '%'; else clearInterval(iv);
+  }, 450);
+  return iv;
+}
+
+function setStep(i, status) {
+  const el = document.getElementById('step-' + i);
+  if(!el) return;
+  el.className = 'step-item ' + status;
+}
+
+// ════════ SCRIPT GENERATION ════════════════════════════
+async function generateScript() {
+  if(!S.claudeKey) { alert('Please set your Anthropic Claude API key first. Click "⚙ API Keys" in the top menu.'); return; }
+  const title = document.getElementById('s-title').value.trim();
+  if(!title) { document.getElementById('s-title').focus(); return; }
+
+  const len = parseInt(document.getElementById('s-len').value);
+  const region = document.getElementById('s-region').value;
+  const audience = document.getElementById('s-audience').value;
+  const draw = document.getElementById('s-draw').value;
+  const palette = document.getElementById('s-palette').value;
+  const mood = document.getElementById('s-mood').value;
+  const outline = document.getElementById('s-outline').value;
+  const culture = [...S.culture].join(', ');
+  const chars = [...S.chars].map(id => CHARS_DB.find(c=>c.id===id)?.name || id).join(', ');
+  const colors = PALETTES[palette] || PALETTES.highlands;
+  const sceneCount = Math.max(4, Math.round(len / 2.5));
+  const avgSecs = Math.round((len * 60) / sceneCount);
+
+  const btn = document.getElementById('s-btn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+
+  const steps = ['Writing script with Claude AI', 'Generating scene images with FLUX', 'Creating voiceover audio', 'Assembling final output'];
+  const iv = showLoading('s-output', `Writing ${len}-minute PNG video script…`, steps);
+  setStep(0, 'active');
+
+  const prompt = `You are a Papua New Guinea animation script writer in the tradition of Bob Browne's Mista Grasruts. Create a culturally authentic scene-by-scene colour animated video script.
+
+DETAILS: Title="${title}", Duration=${len}min (${sceneCount} scenes ~${avgSecs}s each), Region=${region}, Audience=${audience}, Style=${draw}, Palette hex values=${colors.join(',')}, Mood=${mood}, Characters=${chars}, Culture elements=${culture}${outline ? ', Outline='+outline : ''}
+
+RULES: All scenes in authentic PNG locations (Six Mile, Koki Market, Waigani, Parliament Haus, PMV stops, village gardens, bilak maket, haus win, Highlands market, Lae waterfront etc). Characters speak natural Tok Pisin+English: "Em nau!", "Gutpela!", "Wanem samting?", "Tenkyu tumas", "Olsem wanem brata?". Include PNG props: bilum bags, kundu drums, kaukau, PMV buses, thatch roofs, coconut palms. Humour warm Grasruts-style gentle satire. Female character Agnes/Tisa is smart, voice of reason.
+
+Respond ONLY valid JSON array, zero markdown, zero backticks:
+[{"scene_number":1,"title":"title","duration_seconds":90,"location":"specific PNG place","narration_male":"2-4 sentences Tok Pisin+English","narration_female":"2-4 sentences Tok Pisin+English","tok_pisin_dialogue":"2-3 speech bubbles with character prefix","visual_description":"what animation shows — characters, setting, props, actions","drawing_notes":"Bob Browne style: ink weight, pose, expression, colour fills, movement","image_prompt":"detailed prompt for AI image generation in Bob Browne comic style","colour_focus":"which hex colours dominate","cultural_element":"PNG cultural element highlighted","music_mood":"PNG-appropriate background music"}]`;
+
+  try {
+    setStep(0, 'active');
+    const raw = await callClaude(prompt);
+    clearInterval(iv);
+    setStep(0, 'done'); setStep(1, 'active');
+    S.scenes = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    // Generate images in parallel (if fal key set)
+    if(S.falKey) {
+      const imgPromises = S.scenes.map(sc => generateImage(sc.image_prompt || sc.visual_description));
+      const imgs = await Promise.all(imgPromises);
+      S.scenes.forEach((sc, i) => sc._imageUrl = imgs[i] || null);
+    }
+    setStep(1, 'done'); setStep(2, 'active');
+
+    // Generate voiceovers (if eleven key set) — first 3 scenes only to save quota
+    if(S.elevenKey) {
+      for(let i = 0; i < Math.min(3, S.scenes.length); i++) {
+        const sc = S.scenes[i];
+        sc._audioMale = await generateAudio(sc.narration_male, S.maleVoiceId);
+        sc._audioFemale = await generateAudio(sc.narration_female, S.femaleVoiceId);
+      }
+    }
+    setStep(2, 'done'); setStep(3, 'active');
+
+    renderScenes(S.scenes, colors);
+    setStep(3, 'done');
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('s-output').innerHTML = `<div class="card"><div class="card-body"><div class="notice n-red">Error: ${e.message}. Please check your API keys and try again.</div></div></div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Generate Script + Scenes';
+}
+
+function renderScenes(scenes, colors) {
+  const total = scenes.reduce((a,s) => a + s.duration_seconds, 0);
+  const mins = Math.floor(total/60), secs = total%60;
+  let html = `<div class="stats">
+    <div class="stat"><div class="stat-v">${scenes.length}</div><div class="stat-l">Scenes</div></div>
+    <div class="stat"><div class="stat-v">${mins}:${String(secs).padStart(2,'0')}</div><div class="stat-l">Duration</div></div>
+    <div class="stat"><div class="stat-v">${Math.round(total/scenes.length)}s</div><div class="stat-l">Avg Scene</div></div>
+    <div class="stat"><div class="stat-v">${S.falKey ? '✓' : '–'}</div><div class="stat-l">Images</div></div>
+  </div><div class="scenes-wrap">`;
+
+  scenes.forEach((sc, i) => {
+    const col = colors[i % colors.length];
+    const dur = sc.duration_seconds >= 60 ? Math.floor(sc.duration_seconds/60)+'m' : sc.duration_seconds+'s';
+    const imgHtml = sc._imageUrl
+      ? `<img src="${sc._imageUrl}" alt="Scene ${sc.scene_number}" style="width:100%;border-radius:8px;border:2px solid var(--border)">`
+      : S.falKey ? `<div class="img-wrap"><div class="img-placeholder"><span>🎨</span><p>Image pending</p></div></div>`
+      : `<div class="img-wrap" style="min-height:120px;display:flex;align-items:center;justify-content:center"><div class="img-placeholder"><span style="font-size:20px">🖼</span><p style="font-size:11px">Add fal.ai key to generate images</p></div></div>`;
+
+    html += `<div class="sc" id="sc-${i}">
+      <div class="sc-head" onclick="toggleSc(${i})">
+        <div class="sc-num" style="background:${col}33;color:${col}">${sc.scene_number}</div>
+        <div class="sc-title">${sc.title}</div>
+        <div class="sc-tags">
+          <span class="stag t-loc">📍 ${sc.location||''}</span>
+          <span class="stag t-cult">🪘 ${sc.cultural_element||''}</span>
+          <span class="stag t-dur">⏱ ${dur}</span>
+          ${sc._imageUrl ? '<span class="stag" style="background:#D4EDE0;color:#0d3320">🖼 Image</span>' : ''}
+          ${sc._audioMale ? '<span class="stag" style="background:#DBEAFE;color:#112240">🔊 Audio</span>' : ''}
+        </div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="sc-body">
+        <div class="sc-grid">
+          <div class="sc-full">${imgHtml}</div>
+          <div>
+            <div class="slabel"><span class="sdot" style="background:var(--blue)"></span>Male voice — ${S.maleVoiceName}</div>
+            <div class="vblock vblock-m">
+              <div class="vmeta vmeta-m">🎙 ${S.maleVoiceName}</div>
+              <div class="vtext">${sc.narration_male}</div>
+              <div class="vactions">
+                <button class="sm-btn sm-btn-blue" onclick="genSceneAudio(${i},'male')" ${!S.elevenKey?'disabled title="Add ElevenLabs key"':''}>▶ Generate Audio</button>
+                <button class="sm-btn sm-btn-gold" onclick="copyText('${escJ(sc.narration_male)}')">Copy</button>
+              </div>
+              ${sc._audioMale ? `<div class="vaudio"><audio controls src="${sc._audioMale}"></audio></div>` : `<div id="audio-m-${i}"></div>`}
+            </div>
+          </div>
+          <div>
+            <div class="slabel"><span class="sdot" style="background:var(--red)"></span>Female voice — ${S.femaleVoiceName}</div>
+            <div class="vblock vblock-f">
+              <div class="vmeta vmeta-f">🎙 ${S.femaleVoiceName}</div>
+              <div class="vtext">${sc.narration_female}</div>
+              <div class="vactions">
+                <button class="sm-btn sm-btn-red" onclick="genSceneAudio(${i},'female')" ${!S.elevenKey?'disabled title="Add ElevenLabs key"':''}>▶ Generate Audio</button>
+                <button class="sm-btn sm-btn-gold" onclick="copyText('${escJ(sc.narration_female)}')">Copy</button>
+              </div>
+              ${sc._audioFemale ? `<div class="vaudio"><audio controls src="${sc._audioFemale}"></audio></div>` : `<div id="audio-f-${i}"></div>`}
+            </div>
+          </div>
+          <div class="sc-full"><div class="slabel"><span class="sdot" style="background:#FFD700"></span>Tok Pisin dialogue (speech bubbles)</div><div class="tok-box">${(sc.tok_pisin_dialogue||'').replace(/\n/g,'<br>')}</div></div>
+          <div class="sc-full"><div class="slabel"><span class="sdot" style="background:var(--blue)"></span>Visual animation description</div><div class="sval">${sc.visual_description}</div></div>
+          <div class="sc-full"><div class="slabel"><span class="sdot" style="background:var(--gold)"></span>Bob Browne drawing &amp; animation notes</div><div class="draw-box">${sc.drawing_notes}</div></div>
+          <div>
+            <div class="slabel">Image generation prompt</div>
+            <div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap">
+              <div class="sval" style="flex:1;font-size:11px;color:var(--muted)">${sc.image_prompt||sc.visual_description}</div>
+              <button class="sm-btn sm-btn-green" onclick="regenImage(${i})" ${!S.falKey?'disabled title="Add fal.ai key"':''}>🎨 New Image</button>
+            </div>
+          </div>
+          <div>
+            <div class="slabel">Colour focus &amp; music</div>
+            <div class="sval">${sc.colour_focus}<br><span style="color:var(--muted)">🎵 ${sc.music_mood}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div><div class="export-bar">
+    <div class="export-title">Export Script</div>
+    <div class="export-grid">
+      <button class="ebtn ebtn-gold" onclick="exportFullScript()">📄 Download Script .txt</button>
+      <button class="ebtn" onclick="exportAllJSON()">📦 Export JSON</button>
+      <button class="ebtn" onclick="exportSSML()">🎙 Export SSML Voiceovers</button>
+      <button class="ebtn" onclick="exportDrawingBrief()">✏️ Drawing Brief</button>
+      <button class="ebtn" onclick="exportTimeline()">⏱ Timeline CSV</button>
+      <button class="ebtn" onclick="genAllImages()">🎨 Generate All Images</button>
+    </div>
+  </div>`;
+
+  document.getElementById('s-output').innerHTML = html;
+}
+
+async function regenImage(i) {
+  if(!S.falKey) return;
+  const sc = S.scenes[i];
+  const card = document.getElementById('sc-' + i);
+  if(!card) return;
+  const imgContainer = card.querySelector('.sc-full');
+  if(imgContainer) imgContainer.innerHTML = `<div class="img-wrap"><div class="img-overlay"><div class="spin"></div><p>Generating…</p></div></div>`;
+  const url = await generateImage(sc.image_prompt || sc.visual_description);
+  sc._imageUrl = url;
+  if(imgContainer) imgContainer.innerHTML = url
+    ? `<img src="${url}" alt="Scene ${sc.scene_number}" style="width:100%;border-radius:8px;border:2px solid var(--border)">`
+    : `<div class="notice n-red">Image generation failed</div>`;
+}
+
+async function genAllImages() {
+  if(!S.falKey) { alert('Please set your fal.ai API key.'); return; }
+  for(let i = 0; i < S.scenes.length; i++) await regenImage(i);
+}
+
+async function genSceneAudio(sceneIdx, gender) {
+  if(!S.elevenKey) return;
+  const sc = S.scenes[sceneIdx];
+  const text = gender === 'male' ? sc.narration_male : sc.narration_female;
+  const voiceId = gender === 'male' ? S.maleVoiceId : S.femaleVoiceId;
+  const outId = `audio-${gender[0]}-${sceneIdx}`;
+  document.getElementById(outId).innerHTML = '<div style="font-size:11px;color:var(--muted)">Generating audio…</div>';
+  const url = await generateAudio(text, voiceId);
+  if(gender === 'male') sc._audioMale = url; else sc._audioFemale = url;
+  document.getElementById(outId).innerHTML = url
+    ? `<div class="vaudio"><audio controls src="${url}"></audio></div>`
+    : '<div style="font-size:11px;color:var(--red)">Audio failed</div>';
+}
+
+function toggleSc(i) { document.getElementById('sc-'+i)?.classList.toggle('open'); }
+
+// ════════ COMIC GENERATION ═════════════════════════════
+async function generateComic() {
+  if(!S.claudeKey) { alert('Please set your Anthropic Claude API key first.'); return; }
+  const topic = document.getElementById('c-topic').value.trim();
+  if(!topic) { document.getElementById('c-topic').focus(); return; }
+
+  const panels = parseInt(document.getElementById('c-panels').value);
+  const cstyle = document.getElementById('c-style').value;
+  const mainchar = document.getElementById('c-char').value;
+  const setting = document.getElementById('c-setting').value;
+  const moral = document.getElementById('c-moral').value;
+
+  const btn = document.getElementById('c-btn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  const steps = ['Writing comic panels (Claude)', 'Generating panel images (FLUX)', 'Done'];
+  const iv = showLoading('c-output', `Creating ${panels}-panel Grasruts-style comic strip…`, steps);
+  setStep(0, 'active');
+
+  const prompt = `Write a Bob Browne / Mista Grasruts style PNG comic strip with exactly ${panels} panels.
+
+Topic: ${topic}. Style: ${cstyle}. Main character: ${mainchar}. Setting: ${setting||'PNG grassroots community'}. Punchline/moral: ${moral||'natural conclusion'}.
+
+Bob Browne rules: bold ink outlines, round expressive heads, flat colours no gradients, Tok Pisin speech bubbles, PNG props every panel (bilum, PMV, kaukau, haus win, buai stall, kundu etc), warm gentle humour, Agnes with sospen = authority.
+
+Respond ONLY valid JSON array (${panels} objects), no markdown:
+[{"panel_number":1,"action":"scene description","characters":"who and what","dialogue":["CHARACTER: Tok Pisin text"],"drawing_notes":"Bob Browne style instructions","image_prompt":"AI image prompt for this panel in Bob Browne comic style","colour_palette":"3-4 hex colors","mood":"emotion/tone","caption":"bottom caption or empty string"}]`;
+
+  try {
+    const raw = await callClaude(prompt, 2500);
+    clearInterval(iv);
+    setStep(0, 'done'); setStep(1, 'active');
+    S.comicPanels = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    if(S.falKey) {
+      const imgs = await Promise.all(S.comicPanels.map(p => generateImage(p.image_prompt || p.action)));
+      S.comicPanels.forEach((p, i) => p._imageUrl = imgs[i] || null);
+    }
+    setStep(1, 'done'); setStep(2, 'done');
+    renderComic(S.comicPanels, topic);
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('c-output').innerHTML = `<div class="card"><div class="card-body"><div class="notice n-red">Error: ${e.message}</div></div></div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Generate Comic Strip';
+}
+
+function renderComic(panels, topic) {
+  const cols = Math.min(panels.length, 3);
+  let html = `<div class="card">
+    <div class="card-head">"${topic}" — ${panels.length}-Panel Comic Strip</div>
+    <div class="card-body">
+      <div class="comic-frame">
+        <div class="comic-panels" style="grid-template-columns:repeat(${cols},1fr)">
+          ${panels.slice(0,3).map((p,i) => {
+            const bg = p.colour_palette ? p.colour_palette.split(',')[0].trim() : '#fdf8ef';
+            return `<div class="comic-panel" style="background:${bg}22">
+              <div class="pnum">${p.panel_number}</div>
+              ${p._imageUrl ? `<img src="${p._imageUrl}" style="width:100%;border-radius:4px;margin-bottom:6px" />` : ''}
+              ${p.dialogue.slice(0,1).map(d=>`<div class="bubble">${d}</div>`).join('')}
+              ${!p._imageUrl ? `<div class="pdesc">${p.action.substring(0,70)}…</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+        ${panels[panels.length-1]?.caption ? `<div class="comic-caption">${panels[panels.length-1].caption}</div>` : ''}
+      </div>
+    </div>
+  </div>`;
+
+  html += '<div class="scenes-wrap">';
+  panels.forEach((p, i) => {
+    const col = ['#C0392B','#D4AC0D','#2D6A4F','#1A5276','#D35400'][i%5];
+    html += `<div class="sc" id="cp-${i}">
+      <div class="sc-head" onclick="document.getElementById('cp-${i}').classList.toggle('open')">
+        <div class="sc-num" style="background:${col}33;color:${col}">${p.panel_number}</div>
+        <div class="sc-title">Panel ${p.panel_number} — ${p.mood}</div>
+        <div class="sc-tags"><span class="stag t-cult">${p.characters.substring(0,30)}</span>${p._imageUrl?'<span class="stag" style="background:#D4EDE0;color:#0d3320">🖼 AI Image</span>':''}</div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="sc-body">
+        <div class="sc-grid">
+          ${p._imageUrl ? `<div class="sc-full"><img src="${p._imageUrl}" style="width:100%;border-radius:8px;border:2px solid var(--border)"></div>` : ''}
+          <div><div class="slabel">Scene action</div><div class="sval">${p.action}</div></div>
+          <div><div class="slabel">Characters</div><div class="sval">${p.characters}</div></div>
+          <div class="sc-full"><div class="slabel">Tok Pisin dialogue</div><div class="tok-box">${p.dialogue.join('<br>')}</div></div>
+          <div class="sc-full"><div class="slabel">Bob Browne drawing notes</div><div class="draw-box">${p.drawing_notes}</div></div>
+          <div class="sc-full" style="display:flex;gap:8px;align-items:center">
+            <button class="sm-btn sm-btn-green" onclick="regenComicImage(${i})" ${!S.falKey?'disabled':''}>🎨 Regenerate Image</button>
+            <span style="font-size:11px;font-weight:600;color:var(--muted)">${p.image_prompt?.substring(0,80)||''}</span>
+          </div>
+          ${p.caption ? `<div class="sc-full"><div class="slabel">Caption</div><div class="tok-box">${p.caption}</div></div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  });
+  html += `</div><div class="export-bar">
+    <div class="export-title">Export Comic</div>
+    <div class="export-grid">
+      <button class="ebtn ebtn-gold" onclick="exportComicScript()">📄 Download Comic Script</button>
+      <button class="ebtn" onclick="exportComicJSON()">📦 Export JSON</button>
+      <button class="ebtn" onclick="copyComicDialogue()">💬 Copy All Dialogue</button>
+    </div>
+  </div>`;
+  document.getElementById('c-output').innerHTML = html;
+}
+
+async function regenComicImage(i) {
+  if(!S.falKey) return;
+  const p = S.comicPanels[i];
+  const url = await generateImage(p.image_prompt || p.action);
+  p._imageUrl = url;
+  const imgs = document.querySelectorAll(`#cp-${i} img`);
+  if(url && imgs.length > 0) imgs[0].src = url;
+}
+
+// ════════ GOVT GENERATION ══════════════════════════════
+async function generateGovt() {
+  if(!S.claudeKey) { alert('Please set your Anthropic Claude API key first.'); return; }
+  const modId = document.getElementById('g-module').value;
+  if(!modId) { alert('Please select a module.'); return; }
+  const mod = GOVT_MODS.find(m=>m.id===modId);
+  const len = parseInt(document.getElementById('g-len').value);
+  const audience = document.getElementById('g-audience').value;
+  const lang = document.getElementById('g-lang').value;
+  const obj = document.getElementById('g-obj').value;
+  const chars = [...S.chars].map(id => CHARS_DB.find(c=>c.id===id)?.name||id).join(', ');
+  const colors = PALETTES.flag;
+  const sceneCount = Math.max(4, Math.round(len / 2.5));
+
+  const btn = document.getElementById('g-btn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  const iv = showLoading('g-output', `Creating "${mod.title}" episode…`, ['Writing episode (Claude)', 'Generating scene images', 'Done']);
+  setStep(0, 'active');
+
+  const prompt = `Create a PNG Government System animated video course episode using Bob Browne Mista Grasruts style.
+
+MODULE: ${mod.title}. Duration: ${len} minutes (${sceneCount} scenes). Audience: ${audience}. Language: ${lang}. Characters: ${chars}. Learning objectives: ${obj}. Palette: ${colors.join(',')}.
+
+Use Grasruts & friends to EXPLAIN government concepts through everyday PNG situations. E.g. Parliament through a village meeting, budget through a family dividing their harvest money, corruption through Grasruts catching Big Fella Chief in the act. Include actual PNG legal/constitutional references where relevant. Speech in ${lang} — realistic Tok Pisin. Each scene has a clear LEARNING POINT.
+
+Respond ONLY valid JSON array, no markdown:
+[{"scene_number":1,"title":"title","duration_seconds":90,"learning_point":"specific govt concept this scene teaches","location":"specific PNG place","narration_male":"voiceover ${lang}","narration_female":"voiceover ${lang}","tok_pisin_dialogue":"speech bubbles","visual_description":"animation details","drawing_notes":"Bob Browne style","image_prompt":"AI image generation prompt in Bob Browne comic style","govt_reference":"PNG constitutional/legal reference if applicable","colour_focus":"colours used","discussion_question":"question for audience after scene"}]`;
+
+  try {
+    const raw = await callClaude(prompt);
+    clearInterval(iv);
+    setStep(0,'done'); setStep(1,'active');
+    S.govtScenes = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    if(S.falKey) {
+      const imgs = await Promise.all(S.govtScenes.slice(0,4).map(sc => generateImage(sc.image_prompt || sc.visual_description)));
+      imgs.forEach((url, i) => S.govtScenes[i]._imageUrl = url || null);
+    }
+    setStep(1,'done'); setStep(2,'done');
+    renderGovt(S.govtScenes, mod, colors);
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('g-output').innerHTML = `<div class="card"><div class="card-body"><div class="notice n-red">Error: ${e.message}</div></div></div>`;
+  }
+  btn.disabled = false; btn.textContent = 'Generate Course Episode';
+}
+
+function renderGovt(scenes, mod, colors) {
+  const total = scenes.reduce((a,s)=>a+s.duration_seconds,0);
+  const mins = Math.floor(total/60), secs = total%60;
+  let html = `<div class="card" style="border-color:var(--gold);border-width:2px">
+    <div class="card-head" style="background:var(--gold);color:var(--ink)">${mod.title} — Episode Script</div>
+    <div class="card-body">
+      <div class="notice n-green">📚 ${mod.desc} · ${scenes.length} scenes · ${mins}:${String(secs).padStart(2,'0')} total</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-v">${scenes.length}</div><div class="stat-l">Scenes</div></div>
+    <div class="stat"><div class="stat-v">${mins}:${String(secs).padStart(2,'0')}</div><div class="stat-l">Duration</div></div>
+    <div class="stat"><div class="stat-v">${scenes.filter(s=>s.govt_reference).length}</div><div class="stat-l">Legal Refs</div></div>
+    <div class="stat"><div class="stat-v">${scenes.length}</div><div class="stat-l">Discuss Qs</div></div>
+  </div><div class="scenes-wrap">`;
+
+  scenes.forEach((sc,i) => {
+    const col = colors[i%colors.length];
+    const dur = sc.duration_seconds>=60?Math.floor(sc.duration_seconds/60)+'m':sc.duration_seconds+'s';
+    html += `<div class="sc" id="gs-${i}">
+      <div class="sc-head" onclick="document.getElementById('gs-${i}').classList.toggle('open')">
+        <div class="sc-num" style="background:${col}33;color:${col}">${sc.scene_number}</div>
+        <div class="sc-title">${sc.title}</div>
+        <div class="sc-tags">
+          <span class="stag t-loc">📍 ${sc.location||''}</span>
+          <span class="stag t-cult">📖 ${(sc.learning_point||'').substring(0,25)}…</span>
+          <span class="stag t-dur">⏱ ${dur}</span>
+        </div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="sc-body">
+        <div class="sc-grid">
+          ${sc._imageUrl ? `<div class="sc-full"><img src="${sc._imageUrl}" style="width:100%;border-radius:8px;border:2px solid var(--border)"></div>` : ''}
+          <div class="sc-full"><div class="slabel">📚 Learning point</div><div class="learn-box">${sc.learning_point}</div></div>
+          <div>
+            <div class="slabel">Male voiceover</div>
+            <div class="vblock vblock-m">
+              <div class="vmeta vmeta-m">🎙 ${S.maleVoiceName}</div>
+              <div class="vtext">${sc.narration_male}</div>
+              <div class="vactions">
+                <button class="sm-btn sm-btn-blue" onclick="genGovtAudio(${i},'male')" ${!S.elevenKey?'disabled':''}>▶ Audio</button>
+              </div>
+              <div id="gaudio-m-${i}"></div>
+            </div>
+          </div>
+          <div>
+            <div class="slabel">Female voiceover</div>
+            <div class="vblock vblock-f">
+              <div class="vmeta vmeta-f">🎙 ${S.femaleVoiceName}</div>
+              <div class="vtext">${sc.narration_female}</div>
+              <div class="vactions">
+                <button class="sm-btn sm-btn-red" onclick="genGovtAudio(${i},'female')" ${!S.elevenKey?'disabled':''}>▶ Audio</button>
+              </div>
+              <div id="gaudio-f-${i}"></div>
+            </div>
+          </div>
+          <div class="sc-full"><div class="slabel">Tok Pisin dialogue</div><div class="tok-box">${(sc.tok_pisin_dialogue||'').replace(/\n/g,'<br>')}</div></div>
+          <div class="sc-full"><div class="slabel">Visual animation</div><div class="sval">${sc.visual_description}</div></div>
+          <div class="sc-full"><div class="slabel">Bob Browne drawing notes</div><div class="draw-box">${sc.drawing_notes}</div></div>
+          ${sc.govt_reference ? `<div><div class="slabel">🏛 Legal / constitutional reference</div><div class="ref-box">${sc.govt_reference}</div></div>` : ''}
+          <div class="${sc.govt_reference?'':'sc-full'}"><div class="slabel">💬 Discussion question</div><div class="discuss-box">${sc.discussion_question}</div></div>
+          <div class="sc-full" style="display:flex;gap:8px">
+            <button class="sm-btn sm-btn-green" onclick="regenGovtImage(${i})" ${!S.falKey?'disabled':''}>🎨 New Image</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div><div class="export-bar">
+    <div class="export-title">Export Course Episode</div>
+    <div class="export-grid">
+      <button class="ebtn ebtn-gold" onclick="exportGovtScript()">📄 Download Episode .txt</button>
+      <button class="ebtn" onclick="exportGovtJSON()">📦 Export JSON</button>
+      <button class="ebtn" onclick="exportGovtSSML()">🎙 SSML Voiceovers</button>
+      <button class="ebtn" onclick="exportDiscussionQs()">💬 Discussion Questions</button>
+      <button class="ebtn" onclick="exportLearningPoints()">📚 Learning Points</button>
+      <button class="ebtn" onclick="genAllGovtImages()">🎨 Generate All Images</button>
+    </div>
+  </div>`;
+  document.getElementById('g-output').innerHTML = html;
+}
+
+async function regenGovtImage(i) {
+  if(!S.falKey) return;
+  const sc = S.govtScenes[i];
+  const url = await generateImage(sc.image_prompt || sc.visual_description);
+  sc._imageUrl = url;
+  const imgs = document.querySelectorAll(`#gs-${i} img`);
+  if(url && imgs.length > 0) imgs[0].src = url;
+}
+
+async function genAllGovtImages() {
+  if(!S.falKey) { alert('Please set your fal.ai API key.'); return; }
+  for(let i = 0; i < S.govtScenes.length; i++) await regenGovtImage(i);
+}
+
+async function genGovtAudio(i, gender) {
+  if(!S.elevenKey) return;
+  const sc = S.govtScenes[i];
+  const text = gender === 'male' ? sc.narration_male : sc.narration_female;
+  const voiceId = gender === 'male' ? S.maleVoiceId : S.femaleVoiceId;
+  const outId = `gaudio-${gender[0]}-${i}`;
+  document.getElementById(outId).innerHTML = '<div style="font-size:11px;color:var(--muted)">Generating…</div>';
+  const url = await generateAudio(text, voiceId);
+  document.getElementById(outId).innerHTML = url
+    ? `<div class="vaudio"><audio controls src="${url}"></audio></div>`
+    : '<div style="font-size:11px;color:var(--red)">Failed</div>';
+}
+
+// ════════ UTILS ═════════════════════════════════════════
+function escJ(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,' '); }
+function copyText(t) { navigator.clipboard.writeText(t).catch(()=>{}); }
+function dl(fname, content) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type:'text/plain;charset=utf-8'}));
+  a.download = fname; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function exportFullScript() {
+  if(!S.scenes.length) { alert('Generate a script first.'); return; }
+  let t = 'PNG COLOUR DOODLE VIDEO SCRIPT\n'+'='.repeat(50)+'\n\n';
+  S.scenes.forEach(sc => {
+    t += `SCENE ${sc.scene_number}: ${sc.title.toUpperCase()}\nLocation: ${sc.location} | Duration: ${sc.duration_seconds}s\n\n`;
+    t += `MALE VOICEOVER (${S.maleVoiceName}):\n${sc.narration_male}\n\n`;
+    t += `FEMALE VOICEOVER (${S.femaleVoiceName}):\n${sc.narration_female}\n\n`;
+    t += `TOK PISIN DIALOGUE:\n${sc.tok_pisin_dialogue}\n\n`;
+    t += `VISUAL DESCRIPTION:\n${sc.visual_description}\n\n`;
+    t += `BOB BROWNE DRAWING NOTES:\n${sc.drawing_notes}\n\n`;
+    t += `CULTURAL ELEMENT: ${sc.cultural_element}\nMUSIC: ${sc.music_mood}\nCOLOUR: ${sc.colour_focus}\n`;
+    t += '-'.repeat(50)+'\n\n';
+  });
+  dl('png-doodle-script.txt', t);
+}
+
+function exportAllJSON() {
+  dl('png-doodle-studio-export.json', JSON.stringify({scenes:S.scenes, comicPanels:S.comicPanels, govtScenes:S.govtScenes, maleVoice:S.maleVoiceName, femaleVoice:S.femaleVoiceName}, null, 2));
+}
+
+function exportSSML() {
+  if(!S.scenes.length) { alert('Generate a script first.'); return; }
+  let s = '<?xml version="1.0"?>\n<speak>\n';
+  S.scenes.forEach(sc => {
+    s += `  <!-- Scene ${sc.scene_number}: ${sc.title} | ${sc.location} -->\n`;
+    s += `  <voice name="male-png"><prosody rate="0.82" pitch="+2st">${sc.narration_male}</prosody></voice>\n  <break time="0.8s"/>\n`;
+    s += `  <voice name="female-png"><prosody rate="0.82" pitch="+1st">${sc.narration_female}</prosody></voice>\n  <break time="1.2s"/>\n\n`;
+  });
+  dl('png-voiceovers.ssml', s+'</speak>');
+}
+
+function exportDrawingBrief() {
+  if(!S.scenes.length) { alert('Generate a script first.'); return; }
+  let t = 'BOB BROWNE DRAWING BRIEF\n'+'='.repeat(50)+'\nStyle: bold ink outlines (2-3pt), round expressive heads, flat colour fills NO gradients, Tok Pisin speech bubbles, PNG props every scene.\n\n';
+  S.scenes.forEach(sc => {
+    t += `SCENE ${sc.scene_number}: ${sc.title}\nLocation: ${sc.location}\nDRAWING:\n${sc.drawing_notes}\nVISUAL:\n${sc.visual_description}\nCOLOURS:\n${sc.colour_focus}\nIMAGE PROMPT:\n${sc.image_prompt||sc.visual_description}\n\n` + '-'.repeat(40)+'\n\n';
+  });
+  dl('png-drawing-brief.txt', t);
+}
+
+function exportTimeline() {
+  if(!S.scenes.length) { alert('Generate a script first.'); return; }
+  let csv = 'Scene,Title,Location,Duration (s),Cultural Element,Music\n';
+  S.scenes.forEach(sc => { csv += `${sc.scene_number},"${sc.title}","${sc.location}",${sc.duration_seconds},"${sc.cultural_element}","${sc.music_mood}"\n`; });
+  dl('scene-timeline.csv', csv);
+}
+
+function exportComicScript() {
+  if(!S.comicPanels.length) { alert('Generate a comic first.'); return; }
+  let t = 'BOB BROWNE PNG COMIC STRIP SCRIPT\n'+'='.repeat(50)+'\n\n';
+  S.comicPanels.forEach(p => {
+    t += `PANEL ${p.panel_number} (${p.mood})\nSCENE: ${p.action}\nCHARACTERS: ${p.characters}\nDIALOGUE:\n${p.dialogue.join('\n')}\nDRAWING:\n${p.drawing_notes}\n`;
+    if(p.caption) t += `CAPTION: ${p.caption}\n`;
+    t += '\n'+'-'.repeat(40)+'\n\n';
+  });
+  dl('png-comic-strip.txt', t);
+}
+
+function exportComicJSON() { dl('png-comic-panels.json', JSON.stringify(S.comicPanels, null, 2)); }
+function copyComicDialogue() {
+  const all = S.comicPanels.map(p=>`Panel ${p.panel_number}:\n${p.dialogue.join('\n')}`).join('\n\n');
+  navigator.clipboard.writeText(all).catch(()=>{});
+  alert('All comic dialogue copied to clipboard!');
+}
+
+function exportGovtScript() {
+  if(!S.govtScenes.length) { alert('Generate a govt episode first.'); return; }
+  let t = 'PNG GOVERNMENT SYSTEM — VIDEO COURSE EPISODE\n'+'='.repeat(50)+'\n\n';
+  S.govtScenes.forEach(sc => {
+    t += `SCENE ${sc.scene_number}: ${sc.title.toUpperCase()}\nLocation: ${sc.location} | Duration: ${sc.duration_seconds}s\n\n`;
+    t += `LEARNING POINT:\n${sc.learning_point}\n\nMALE VOICEOVER:\n${sc.narration_male}\n\nFEMALE VOICEOVER:\n${sc.narration_female}\n\n`;
+    t += `TOK PISIN DIALOGUE:\n${sc.tok_pisin_dialogue}\n\nVISUAL:\n${sc.visual_description}\n\nDRAWING NOTES:\n${sc.drawing_notes}\n\n`;
+    if(sc.govt_reference) t += `LEGAL REFERENCE:\n${sc.govt_reference}\n\n`;
+    t += `DISCUSSION QUESTION:\n${sc.discussion_question}\n\n` + '-'.repeat(50)+'\n\n';
+  });
+  dl('png-govt-course-episode.txt', t);
+}
+
+function exportGovtJSON() { dl('png-govt-episode.json', JSON.stringify(S.govtScenes, null, 2)); }
+
+function exportGovtSSML() {
+  if(!S.govtScenes.length) return;
+  let s = '<?xml version="1.0"?>\n<speak>\n';
+  S.govtScenes.forEach(sc => {
+    s += `  <!-- ${sc.title} -->\n`;
+    s += `  <voice name="male-png"><prosody rate="0.82" pitch="+2st">${sc.narration_male}</prosody></voice>\n  <break time="0.8s"/>\n`;
+    s += `  <voice name="female-png"><prosody rate="0.82" pitch="+1st">${sc.narration_female}</prosody></voice>\n  <break time="1.2s"/>\n\n`;
+  });
+  dl('govt-episode-voiceovers.ssml', s+'</speak>');
+}
+
+function exportDiscussionQs() {
+  if(!S.govtScenes.length) return;
+  let t = 'DISCUSSION QUESTIONS — PNG Government Course\n'+'='.repeat(40)+'\n\n';
+  S.govtScenes.forEach(sc => { t += `Scene ${sc.scene_number} — ${sc.title}:\n${sc.discussion_question}\n\n`; });
+  dl('discussion-questions.txt', t);
+}
+
+function exportLearningPoints() {
+  if(!S.govtScenes.length) return;
+  let t = 'LEARNING POINTS — PNG Government Course\n'+'='.repeat(40)+'\n\n';
+  S.govtScenes.forEach(sc => { t += `${sc.scene_number}. ${sc.learning_point}\n`; });
+  dl('learning-points.txt', t);
+}
+</script>
+</body>
+</html>
